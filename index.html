@@ -576,8 +576,8 @@
       </div>
       <div class="source-tags">
         <span class="source-tag">36氪</span>
-        <span class="source-tag">腾讯科技</span>
-        <span class="source-tag">今日头条·科技</span>
+        <span class="source-tag">少数派</span>
+        <span class="source-tag">爱范儿</span>
       </div>
     </div>
     <div id="news-tech" class="news-grid"></div>
@@ -591,9 +591,9 @@
         <span class="section-badge badge-ai">AI</span>
       </div>
       <div class="source-tags">
-        <span class="source-tag">36氪·AI</span>
-        <span class="source-tag">MIT Tech Review</span>
-        <span class="source-tag">The Verge·AI</span>
+        <span class="source-tag">36氪</span>
+        <span class="source-tag">少数派</span>
+        <span class="source-tag">爱范儿</span>
       </div>
     </div>
     <div id="news-ai" class="news-grid"></div>
@@ -607,8 +607,8 @@
         <span class="section-badge badge-finance">FINANCE</span>
       </div>
       <div class="source-tags">
-        <span class="source-tag">今日头条·财经</span>
-        <span class="source-tag">华尔街见闻</span>
+        <span class="source-tag">36氪</span>
+        <span class="source-tag">CoinTelegraph</span>
       </div>
     </div>
     <div id="news-finance" class="news-grid"></div>
@@ -622,9 +622,8 @@
         <span class="section-badge badge-blockchain">BLOCKCHAIN</span>
       </div>
       <div class="source-tags">
-        <span class="source-tag">吴说Real</span>
-        <span class="source-tag">CoinDesk</span>
         <span class="source-tag">Decrypt</span>
+        <span class="source-tag">CoinTelegraph</span>
       </div>
     </div>
     <div id="news-blockchain" class="news-grid"></div>
@@ -641,23 +640,21 @@ const MAX_ITEMS = 30;
 const SOURCES = {
   tech: [
     { name: '36氪', url: 'https://36kr.com/feed' },
-    { name: '腾讯科技', url: 'https://feed.cnbeta.com.tw/rss/tech.rss' },
-    // 今日头条无公开RSS，用RSSHub替代（需自建或用公共实例）
-    // { name: '今日头条·科技', url: 'https://rsshub.app/toutiao/category/science' },
+    { name: '少数派', url: 'https://sspai.com/feed' },
+    { name: '爱范儿', url: 'https://www.ifanr.com/feed' },
   ],
   ai: [
-    { name: '36氪·AI', url: 'https://36kr.com/feed?channel=ai' },
-    { name: 'MIT Tech Review', url: 'https://www.technologyreview.com/feed/' },
-    { name: 'The Verge·AI', url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml' },
+    { name: '36氪', url: 'https://36kr.com/feed' },
+    { name: '少数派', url: 'https://sspai.com/feed' },
+    { name: '爱范儿', url: 'https://www.ifanr.com/feed' },
   ],
   finance: [
-    { name: '华尔街见闻', url: 'https://wallstreetcn.com/rss' },
-    // { name: '今日头条·财经', url: 'https://rsshub.app/toutiao/category/finance' },
+    { name: '36氪', url: 'https://36kr.com/feed' },
+    { name: 'CoinTelegraph', url: 'https://cointelegraph.com/rss' },
   ],
   blockchain: [
-    { name: 'CoinDesk', url: 'https://feeds.feedburner.com/CoinDesk' },
     { name: 'Decrypt', url: 'https://decrypt.co/feed' },
-    // 吴说Real无RSS，需手动或用付费服务
+    { name: 'CoinTelegraph', url: 'https://cointelegraph.com/rss' },
   ]
 };
 
