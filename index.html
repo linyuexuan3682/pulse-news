@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>脉冲 · PULSE — 科技信息聚合</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent-tech: #00d4ff;
+    --accent-ai: #7c3aed;
+    --accent-finance: #f59e0b;
+    --accent-blockchain: #10b981;
+    --text-primary: #e8e8f0;
+    --text-secondary: #8888aa;
+    --text-dim: #44445a;
+    --glow-tech: rgba(0, 212, 255, 0.15);
+    --glow-ai: rgba(124, 58, 237, 0.15);
+    --glow-finance: rgba(245, 158, 11, 0.15);
+    --glow-blockchain: rgba(16, 185, 129, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Header */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10, 10, 15, 0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+  }
+
+  .header-inner {
+    max-width: 1600px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .logo-zh {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.1em;
+  }
+
+  .logo-en {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent-tech);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .live-dot {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.1em;
+  }
+
+  .live-dot::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  #current-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+  }
+
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 0.4rem 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .refresh-btn:hover {
+    border-color: var(--accent-tech);
+    color: var(--accent-tech);
+    box-shadow: 0 0 12px var(--glow-tech);
+  }
+
+  /* Tab navigation */
+  .tab-nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    position: sticky;
+    top: 64px;
+    z-index: 90;
+  }
+
+  .tab-nav-inner {
+    max-width: 1600px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0;
+  }
+
+  .tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 1rem 1.5rem;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 400;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .tab-btn .tab-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+
+  .tab-btn[data-tab="tech"] .tab-dot { background: var(--accent-tech); }
+  .tab-btn[data-tab="ai"] .tab-dot { background: var(--accent-ai); }
+  .tab-btn[data-tab="finance"] .tab-dot { background: var(--accent-finance); }
+  .tab-btn[data-tab="blockchain"] .tab-dot { background: var(--accent-blockchain); }
+
+  .tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform: scaleX(0);
+    transition: transform 0.2s;
+  }
+
+  .tab-btn[data-tab="tech"]::after { background: var(--accent-tech); }
+  .tab-btn[data-tab="ai"]::after { background: var(--accent-ai); }
+  .tab-btn[data-tab="finance"]::after { background: var(--accent-finance); }
+  .tab-btn[data-tab="blockchain"]::after { background: var(--accent-blockchain); }
+
+  .tab-btn.active {
+    color: var(--text-primary);
+  }
+
+  .tab-btn.active::after {
+    transform: scaleX(1);
+  }
+
+  .tab-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    padding: 1px 5px;
+    border-radius: 2px;
+    background: var(--border);
+    color: var(--text-dim);
+  }
+
+  /* Main content */
+  main {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Tab panels */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Section header */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .section-title h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .section-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    padding: 3px 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .badge-tech { background: var(--glow-tech); color: var(--accent-tech); border: 1px solid rgba(0,212,255,0.2); }
+  .badge-ai { background: var(--glow-ai); color: var(--accent-ai); border: 1px solid rgba(124,58,237,0.2); }
+  .badge-finance { background: var(--glow-finance); color: var(--accent-finance); border: 1px solid rgba(245,158,11,0.2); }
+  .badge-blockchain { background: var(--glow-blockchain); color: var(--accent-blockchain); border: 1px solid rgba(16,185,129,0.2); }
+
+  .source-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .source-tag {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    background: var(--border);
+    color: var(--text-dim);
+    border-radius: 2px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* News grid */
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 3rem;
+  }
+
+  /* News card */
+  .news-card {
+    background: var(--surface);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .news-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .tab-panel[data-panel="tech"] .news-card::before { background: var(--accent-tech); }
+  .tab-panel[data-panel="ai"] .news-card::before { background: var(--accent-ai); }
+  .tab-panel[data-panel="finance"] .news-card::before { background: var(--accent-finance); }
+  .tab-panel[data-panel="blockchain"] .news-card::before { background: var(--accent-blockchain); }
+
+  .news-card:hover {
+    background: #16161f;
+  }
+
+  .news-card:hover::before {
+    opacity: 1;
+  }
+
+  .card-index {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.1em;
+  }
+
+  .card-title {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    font-weight: 400;
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .card-source {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .card-time {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* Loading state */
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    gap: 1rem;
+    color: var(--text-dim);
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+
+  .loading-bar {
+    width: 200px;
+    height: 1px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .loading-bar::after {
+    content: '';
+    position: absolute;
+    left: -50%;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    animation: loading-slide 1.2s infinite ease-in-out;
+  }
+
+  .loading-bar.tech::after { background: var(--accent-tech); }
+  .loading-bar.ai::after { background: var(--accent-ai); }
+  .loading-bar.finance::after { background: var(--accent-finance); }
+  .loading-bar.blockchain::after { background: var(--accent-blockchain); }
+
+  @keyframes loading-slide {
+    0% { left: -50%; }
+    100% { left: 100%; }
+  }
+
+  .loading-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* Error state */
+  .error-state {
+    padding: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 2px solid #ef4444;
+  }
+
+  .error-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: #ef4444;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+
+  .error-msg {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .error-detail {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    background: var(--bg);
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    line-height: 1.8;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .stat-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .stat-item.tech .stat-value { color: var(--accent-tech); }
+  .stat-item.ai .stat-value { color: var(--accent-ai); }
+  .stat-item.finance .stat-value { color: var(--accent-finance); }
+  .stat-item.blockchain .stat-value { color: var(--accent-blockchain); }
+
+  /* Next update countdown */
+  .next-update {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .next-update span { color: var(--text-secondary); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .news-grid { grid-template-columns: 1fr; }
+    .header-meta { display: none; }
+    main { padding: 1rem; }
+    .tab-btn { padding: 0.75rem 0.9rem; font-size: 0.8rem; }
+  }
+
+  /* Fade in animation */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .news-card {
+    animation: fadeInUp 0.3s ease both;
+  }
+
+  .news-card:nth-child(n) { animation-delay: calc(n * 0.02s); }
+
+  /* Stagger delay for cards */
+  .news-card:nth-child(1) { animation-delay: 0.02s; }
+  .news-card:nth-child(2) { animation-delay: 0.04s; }
+  .news-card:nth-child(3) { animation-delay: 0.06s; }
+  .news-card:nth-child(4) { animation-delay: 0.08s; }
+  .news-card:nth-child(5) { animation-delay: 0.10s; }
+  .news-card:nth-child(6) { animation-delay: 0.12s; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-zh">脉冲</span>
+      <span class="logo-en">PULSE · 科技信息聚合</span>
+    </div>
+    <div class="header-meta">
+      <div class="next-update">下次更新: <span id="next-update-time">--:--</span></div>
+      <div class="live-dot">实时</div>
+      <div id="current-time">--:--:--</div>
+      <button class="refresh-btn" onclick="refreshAll()">⟳ 刷新全部</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tab-nav">
+  <div class="tab-nav-inner">
+    <button class="tab-btn active" data-tab="tech" onclick="switchTab('tech')">
+      <span class="tab-dot"></span>科技
+      <span class="tab-count" id="count-tech">0</span>
+    </button>
+    <button class="tab-btn" data-tab="ai" onclick="switchTab('ai')">
+      <span class="tab-dot"></span>人工智能
+      <span class="tab-count" id="count-ai">0</span>
+    </button>
+    <button class="tab-btn" data-tab="finance" onclick="switchTab('finance')">
+      <span class="tab-dot"></span>财经
+      <span class="tab-count" id="count-finance">0</span>
+    </button>
+    <button class="tab-btn" data-tab="blockchain" onclick="switchTab('blockchain')">
+      <span class="tab-dot"></span>区块链
+      <span class="tab-count" id="count-blockchain">0</span>
+    </button>
+  </div>
+</nav>
+
+<main>
+  <!-- Tech Panel -->
+  <div class="tab-panel active" data-panel="tech" id="panel-tech">
+    <div class="section-header">
+      <div class="section-title">
+        <h2>科技资讯</h2>
+        <span class="section-badge badge-tech">TECH</span>
+      </div>
+      <div class="source-tags">
+        <span class="source-tag">36氪</span>
+        <span class="source-tag">腾讯科技</span>
+        <span class="source-tag">今日头条·科技</span>
+      </div>
+    </div>
+    <div id="news-tech" class="news-grid"></div>
+  </div>
+
+  <!-- AI Panel -->
+  <div class="tab-panel" data-panel="ai" id="panel-ai">
+    <div class="section-header">
+      <div class="section-title">
+        <h2>人工智能</h2>
+        <span class="section-badge badge-ai">AI</span>
+      </div>
+      <div class="source-tags">
+        <span class="source-tag">36氪·AI</span>
+        <span class="source-tag">MIT Tech Review</span>
+        <span class="source-tag">The Verge·AI</span>
+      </div>
+    </div>
+    <div id="news-ai" class="news-grid"></div>
+  </div>
+
+  <!-- Finance Panel -->
+  <div class="tab-panel" data-panel="finance" id="panel-finance">
+    <div class="section-header">
+      <div class="section-title">
+        <h2>财经资讯</h2>
+        <span class="section-badge badge-finance">FINANCE</span>
+      </div>
+      <div class="source-tags">
+        <span class="source-tag">今日头条·财经</span>
+        <span class="source-tag">华尔街见闻</span>
+      </div>
+    </div>
+    <div id="news-finance" class="news-grid"></div>
+  </div>
+
+  <!-- Blockchain Panel -->
+  <div class="tab-panel" data-panel="blockchain" id="panel-blockchain">
+    <div class="section-header">
+      <div class="section-title">
+        <h2>区块链 / Web3</h2>
+        <span class="section-badge badge-blockchain">BLOCKCHAIN</span>
+      </div>
+      <div class="source-tags">
+        <span class="source-tag">吴说Real</span>
+        <span class="source-tag">CoinDesk</span>
+        <span class="source-tag">Decrypt</span>
+      </div>
+    </div>
+    <div id="news-blockchain" class="news-grid"></div>
+  </div>
+</main>
+
+<script>
+// ============================================================
+// CONFIGURATION — 修改这里来更换数据源
+// ============================================================
+const RSS_PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
+const MAX_ITEMS = 30;
+
+const SOURCES = {
+  tech: [
+    { name: '36氪', url: 'https://36kr.com/feed' },
+    { name: '腾讯科技', url: 'https://feed.cnbeta.com.tw/rss/tech.rss' },
+    // 今日头条无公开RSS，用RSSHub替代（需自建或用公共实例）
+    // { name: '今日头条·科技', url: 'https://rsshub.app/toutiao/category/science' },
+  ],
+  ai: [
+    { name: '36氪·AI', url: 'https://36kr.com/feed?channel=ai' },
+    { name: 'MIT Tech Review', url: 'https://www.technologyreview.com/feed/' },
+    { name: 'The Verge·AI', url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml' },
+  ],
+  finance: [
+    { name: '华尔街见闻', url: 'https://wallstreetcn.com/rss' },
+    // { name: '今日头条·财经', url: 'https://rsshub.app/toutiao/category/finance' },
+  ],
+  blockchain: [
+    { name: 'CoinDesk', url: 'https://feeds.feedburner.com/CoinDesk' },
+    { name: 'Decrypt', url: 'https://decrypt.co/feed' },
+    // 吴说Real无RSS，需手动或用付费服务
+  ]
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let allNews = { tech: [], ai: [], finance: [], blockchain: [] };
+
+// ============================================================
+// FETCH RSS
+// ============================================================
+async function fetchRSS(source) {
+  const apiUrl = `${RSS_PROXY}${encodeURIComponent(source.url)}&count=15&api_key=`;
+  try {
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'RSS fetch failed');
+    return data.items.map(item => ({
+      title: item.title,
+      link: item.link,
+      pubDate: item.pubDate,
+      source: source.name,
+    }));
+  } catch (e) {
+    console.warn(`[${source.name}] 获取失败:`, e.message);
+    return [];
+  }
+}
+
+async function loadCategory(category) {
+  const container = document.getElementById(`news-${category}`);
+  const sources = SOURCES[category];
+
+  // Show loading
+  container.innerHTML = `
+    <div class="loading-state" style="grid-column: 1/-1;">
+      <div class="loading-bar ${category}"></div>
+      <div class="loading-text">正在获取数据 · ${sources.map(s=>s.name).join(' · ')}</div>
+    </div>
+  `;
+
+  // Fetch all sources in parallel
+  const results = await Promise.all(sources.map(s => fetchRSS(s)));
+  let items = results.flat();
+
+  // Sort by date, dedupe by title, limit to 30
+  items.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+  const seen = new Set();
+  items = items.filter(item => {
+    if (seen.has(item.title)) return false;
+    seen.add(item.title);
+    return true;
+  }).slice(0, MAX_ITEMS);
+
+  allNews[category] = items;
+
+  // Update count badge
+  document.getElementById(`count-${category}`).textContent = items.length;
+
+  // Render
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="error-state" style="grid-column: 1/-1;">
+        <div class="error-title">⚠ 数据获取失败</div>
+        <div class="error-msg">无法从配置的RSS源获取数据。可能原因：跨域限制、RSS地址变更、或网络问题。</div>
+        <div class="error-detail">
+          已尝试的数据源：<br>
+          ${sources.map(s => `• ${s.name}: ${s.url}`).join('<br>')}
+          <br><br>
+          💡 解决方案见下方"部署指南"
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = items.map((item, i) => `
+    <div class="news-card" onclick="window.open('${item.link}', '_blank')">
+      <div class="card-index">№ ${String(i+1).padStart(2,'0')}</div>
+      <div class="card-title">${item.title}</div>
+      <div class="card-meta">
+        <span class="card-source">${item.source}</span>
+        <span class="card-time">${formatDate(item.pubDate)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+function formatDate(str) {
+  if (!str) return '';
+  try {
+    const d = new Date(str);
+    const now = new Date();
+    const diff = Math.floor((now - d) / 60000);
+    if (diff < 60) return `${diff}分钟前`;
+    if (diff < 1440) return `${Math.floor(diff/60)}小时前`;
+    return `${d.getMonth()+1}/${d.getDate()}`;
+  } catch { return ''; }
+}
+
+function updateClock() {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+  document.getElementById('current-time').textContent = timeStr;
+
+  // Next update: 09:00 or 18:00
+  const h = now.getHours(), m = now.getMinutes();
+  let nextH = h < 9 ? 9 : h < 18 ? 18 : 9;
+  let nextDay = h >= 18 ? '明日' : '今日';
+  document.getElementById('next-update-time').textContent = `${nextDay} ${String(nextH).padStart(2,'0')}:00`;
+}
+
+async function refreshAll() {
+  const btn = document.querySelector('.refresh-btn');
+  btn.textContent = '⟳ 刷新中...';
+  btn.disabled = true;
+  await Promise.all(['tech','ai','finance','blockchain'].map(c => loadCategory(c)));
+  btn.textContent = '⟳ 刷新全部';
+  btn.disabled = false;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.onload = async () => {
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Load all categories
+  await Promise.all(['tech','ai','finance','blockchain'].map(c => loadCategory(c)));
+
+  // Auto-refresh at 09:00 and 18:00
+  setInterval(() => {
+    const now = new Date();
+    if ((now.getHours() === 9 || now.getHours() === 18) && now.getMinutes() === 0 && now.getSeconds() === 0) {
+      refreshAll();
+    }
+  }, 1000);
+};
+</script>
+</body>
+</html>
