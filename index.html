@@ -634,7 +634,6 @@
 // ============================================================
 // CONFIGURATION — 修改这里来更换数据源
 // ============================================================
-const RSS_PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
 const MAX_ITEMS = 30;
 
 const SOURCES = {
@@ -664,24 +663,43 @@ const SOURCES = {
 let allNews = { tech: [], ai: [], finance: [], blockchain: [] };
 
 // ============================================================
-// FETCH RSS
+// FETCH RSS — 双代理自动切换，解决跨域问题
 // ============================================================
 async function fetchRSS(source) {
-  const apiUrl = `${RSS_PROXY}${encodeURIComponent(source.url)}&count=15&api_key=`;
-  try {
-    const res = await fetch(apiUrl);
-    const data = await res.json();
-    if (data.status !== 'ok') throw new Error(data.message || 'RSS fetch failed');
-    return data.items.map(item => ({
-      title: item.title,
-      link: item.link,
-      pubDate: item.pubDate,
-      source: source.name,
-    }));
-  } catch (e) {
-    console.warn(`[${source.name}] 获取失败:`, e.message);
-    return [];
+  const proxies = [
+    url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  ];
+
+  for (const makeProxy of proxies) {
+    try {
+      const res = await fetch(makeProxy(source.url), { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const xmlText = (data && data.contents !== undefined) ? data.contents : null;
+      if (!xmlText) continue;
+
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(xmlText, 'text/xml');
+      const items = [...xml.querySelectorAll('item, entry')];
+      if (items.length === 0) continue;
+
+      return items.slice(0, 15).map(item => {
+        const get = tag => item.querySelector(tag)?.textContent?.trim() || '';
+        const getAttr = (tag, attr) => item.querySelector(tag)?.getAttribute(attr) || '';
+        const link = get('link') || getAttr('link', 'href') || get('guid');
+        return {
+          title: get('title'),
+          link,
+          pubDate: get('pubDate') || get('published') || get('updated'),
+          source: source.name,
+        };
+      }).filter(i => i.title && i.link);
+    } catch (e) {
+      console.warn(`[${source.name}] 代理失败:`, e.message);
+    }
   }
+  return [];
 }
 
 async function loadCategory(category) {
