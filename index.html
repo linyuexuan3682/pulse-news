@@ -636,24 +636,27 @@
 // ============================================================
 const MAX_ITEMS = 30;
 
+// 通过 Vercel 自带的 /api/rss 接口服务端抓取，彻底无跨域问题
+const API = '/api/rss?url=';
+
 const SOURCES = {
   tech: [
-    { name: '36氪', url: 'https://36kr.com/feed' },
-    { name: '少数派', url: 'https://sspai.com/feed' },
-    { name: '爱范儿', url: 'https://www.ifanr.com/feed' },
+    { name: '36氪',  url: API + encodeURIComponent('https://36kr.com/feed') },
+    { name: '少数派', url: API + encodeURIComponent('https://sspai.com/feed') },
+    { name: '爱范儿', url: API + encodeURIComponent('https://www.ifanr.com/feed') },
   ],
   ai: [
-    { name: '36氪', url: 'https://36kr.com/feed' },
-    { name: '少数派', url: 'https://sspai.com/feed' },
-    { name: '爱范儿', url: 'https://www.ifanr.com/feed' },
+    { name: '36氪',  url: API + encodeURIComponent('https://36kr.com/feed') },
+    { name: '少数派', url: API + encodeURIComponent('https://sspai.com/feed') },
+    { name: '爱范儿', url: API + encodeURIComponent('https://www.ifanr.com/feed') },
   ],
   finance: [
-    { name: '36氪', url: 'https://36kr.com/feed' },
-    { name: 'CoinTelegraph', url: 'https://cointelegraph.com/rss' },
+    { name: '36氪',          url: API + encodeURIComponent('https://36kr.com/feed') },
+    { name: 'CoinTelegraph', url: API + encodeURIComponent('https://cointelegraph.com/rss') },
   ],
   blockchain: [
-    { name: 'Decrypt', url: 'https://decrypt.co/feed' },
-    { name: 'CoinTelegraph', url: 'https://cointelegraph.com/rss' },
+    { name: 'Decrypt',       url: API + encodeURIComponent('https://decrypt.co/feed') },
+    { name: 'CoinTelegraph', url: API + encodeURIComponent('https://cointelegraph.com/rss') },
   ]
 };
 
@@ -663,7 +666,7 @@ const SOURCES = {
 let allNews = { tech: [], ai: [], finance: [], blockchain: [] };
 
 // ============================================================
-// FETCH RSS — 多代理自动切换，解决跨域问题
+// FETCH RSS — 调用 Vercel /api/rss 服务端接口，无跨域问题
 // ============================================================
 function parseXML(xmlText, sourceName) {
   const parser = new DOMParser();
@@ -684,32 +687,18 @@ function parseXML(xmlText, sourceName) {
 }
 
 async function fetchRSS(source) {
-  // 代理列表：isJson=true 表示返回JSON包装；isJson=false 表示直接返回XML文本
-  const proxies = [
-    { make: url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, isJson: true },
-    { make: url => `https://corsproxy.io/?${encodeURIComponent(url)}`, isJson: false },
-    { make: url => `https://thingproxy.freeboard.io/fetch/${url}`, isJson: false },
-  ];
-
-  for (const proxy of proxies) {
-    try {
-      const res = await fetch(proxy.make(source.url), { signal: AbortSignal.timeout(12000) });
-      if (!res.ok) continue;
-      let xmlText;
-      if (proxy.isJson) {
-        const data = await res.json();
-        xmlText = data?.contents;
-      } else {
-        xmlText = await res.text();
-      }
-      if (!xmlText || !xmlText.includes('<')) continue;
-      const result = parseXML(xmlText, source.name);
-      if (result && result.length > 0) return result;
-    } catch (e) {
-      console.warn(`[${source.name}] 代理失败:`, e.message);
-    }
+  try {
+    const res = await fetch(source.url, { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const xmlText = await res.text();
+    if (!xmlText || !xmlText.includes('<')) throw new Error('Empty response');
+    const result = parseXML(xmlText, source.name);
+    if (result && result.length > 0) return result;
+    throw new Error('No items parsed');
+  } catch (e) {
+    console.warn(`[${source.name}] 获取失败:`, e.message);
+    return [];
   }
-  return [];
 }
 
 async function loadCategory(category) {
