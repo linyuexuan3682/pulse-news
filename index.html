@@ -663,38 +663,48 @@ const SOURCES = {
 let allNews = { tech: [], ai: [], finance: [], blockchain: [] };
 
 // ============================================================
-// FETCH RSS — 双代理自动切换，解决跨域问题
+// FETCH RSS — 多代理自动切换，解决跨域问题
 // ============================================================
+function parseXML(xmlText, sourceName) {
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(xmlText, 'text/xml');
+  const items = [...xml.querySelectorAll('item, entry')];
+  if (items.length === 0) return null;
+  return items.slice(0, 15).map(item => {
+    const get = tag => item.querySelector(tag)?.textContent?.trim() || '';
+    const getAttr = (tag, attr) => item.querySelector(tag)?.getAttribute(attr) || '';
+    const link = get('link') || getAttr('link', 'href') || get('guid');
+    return {
+      title: get('title'),
+      link,
+      pubDate: get('pubDate') || get('published') || get('updated'),
+      source: sourceName,
+    };
+  }).filter(i => i.title && i.link);
+}
+
 async function fetchRSS(source) {
+  // 代理列表：isJson=true 表示返回JSON包装；isJson=false 表示直接返回XML文本
   const proxies = [
-    url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    { make: url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, isJson: true },
+    { make: url => `https://corsproxy.io/?${encodeURIComponent(url)}`, isJson: false },
+    { make: url => `https://thingproxy.freeboard.io/fetch/${url}`, isJson: false },
   ];
 
-  for (const makeProxy of proxies) {
+  for (const proxy of proxies) {
     try {
-      const res = await fetch(makeProxy(source.url), { signal: AbortSignal.timeout(8000) });
+      const res = await fetch(proxy.make(source.url), { signal: AbortSignal.timeout(12000) });
       if (!res.ok) continue;
-      const data = await res.json();
-      const xmlText = (data && data.contents !== undefined) ? data.contents : null;
-      if (!xmlText) continue;
-
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(xmlText, 'text/xml');
-      const items = [...xml.querySelectorAll('item, entry')];
-      if (items.length === 0) continue;
-
-      return items.slice(0, 15).map(item => {
-        const get = tag => item.querySelector(tag)?.textContent?.trim() || '';
-        const getAttr = (tag, attr) => item.querySelector(tag)?.getAttribute(attr) || '';
-        const link = get('link') || getAttr('link', 'href') || get('guid');
-        return {
-          title: get('title'),
-          link,
-          pubDate: get('pubDate') || get('published') || get('updated'),
-          source: source.name,
-        };
-      }).filter(i => i.title && i.link);
+      let xmlText;
+      if (proxy.isJson) {
+        const data = await res.json();
+        xmlText = data?.contents;
+      } else {
+        xmlText = await res.text();
+      }
+      if (!xmlText || !xmlText.includes('<')) continue;
+      const result = parseXML(xmlText, source.name);
+      if (result && result.length > 0) return result;
     } catch (e) {
       console.warn(`[${source.name}] 代理失败:`, e.message);
     }
